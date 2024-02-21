@@ -16,5 +16,6 @@ export const config: Config = {
             channel: 'Your Channel Here',
             enableSpoiler: true,
         })
-    }
+    },
+    scrapeInterval: 10 * 60 // 10 minutes
 }

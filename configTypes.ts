@@ -8,5 +8,6 @@ export interface Config {
     },
     destinations: {
         [key: string]: Destination
-    }
+    },
+    scrapeInterval: number;
 }
