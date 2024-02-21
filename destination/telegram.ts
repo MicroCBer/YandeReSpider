@@ -18,6 +18,7 @@ export class TelegramDestination {
     generateCaption: (img: UploadImage) => string;
     disableNotification: boolean;
     bot: Telegraf;
+    asFile: boolean;
 
     constructor({
         botToken,
@@ -26,13 +27,15 @@ export class TelegramDestination {
         generateCaption = (img) => {
             return `<b><i>From</i></b> ${img.scraper}\n<b><i>Tags</i></b> ${img.tags.map(toTag).join(' ')}`;
         },
-        disableNotification = true
+        disableNotification = true,
+        asFile = false
     }: {
         botToken: string,
         channel: string,
         enableSpoiler?: boolean,
         generateCaption?: (img: UploadImage) => string,
-        disableNotification?: boolean
+        disableNotification?: boolean,
+        asFile?: boolean
     }) {
         this.botToken = botToken;
         this.channel = channel;
@@ -40,15 +43,24 @@ export class TelegramDestination {
         this.generateCaption = generateCaption;
         this.disableNotification = disableNotification;
         this.bot = new Telegraf(this.botToken);
+        this.asFile = asFile;
     }
 
     async upload(img: UploadImage) {
         const caption = this.generateCaption(img);
-        await this.bot.telegram.sendPhoto(this.channel, { source: Buffer.from(img.data) }, {
-            caption,
-            parse_mode: 'HTML',
-            disable_notification: this.disableNotification,
-            has_spoiler: this.enableSpoiler
-        });
+        if (this.asFile) {
+            await this.bot.telegram.sendDocument(this.channel, { source: Buffer.from(img.data) }, {
+                caption,
+                parse_mode: 'HTML',
+                disable_notification: this.disableNotification
+            });
+        } else {
+            await this.bot.telegram.sendPhoto(this.channel, { source: Buffer.from(img.data) }, {
+                caption,
+                parse_mode: 'HTML',
+                disable_notification: this.disableNotification,
+                has_spoiler: this.enableSpoiler
+            });
+        }
     }
 }
