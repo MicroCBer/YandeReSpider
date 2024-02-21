@@ -3,6 +3,7 @@ import leveldown from 'leveldown'
 import { existsSync, readFileSync } from 'fs'
 import { TaskPool } from './task-pool'
 import { config } from "./config"
+import { TaskQueue } from './queue'
 
 const db = levelup(leveldown('./database'))
 
@@ -17,6 +18,9 @@ const db = levelup(leveldown('./database'))
     };
 
     const downloadTaskPool = new TaskPool(5);
+    const uploadTaskQueue = new TaskQueue<void>();
+    uploadTaskQueue.successWaitTime = config.uploadSuccessWaitTime * 1000;
+    uploadTaskQueue.failedWaitTime = config.uploadFailWaitTime * 1000;
 
     while (1) {
         for (const scraper in config.scrapers) {
@@ -46,25 +50,30 @@ const db = levelup(leveldown('./database'))
                     console.log(`Downloading ${id}`);
                     const buf = await data.fetch();
                     console.log(`Successfully downloaded ${id}`);
-                    for (const dest in config.destinations) {
-                        const destInst = config.destinations[dest];
-                        console.log(`Uploading ${id} to ${dest}`);
-                        await destInst.upload({
-                            scraper,
-                            id,
+                    
+                    uploadTaskQueue.addTask(async ()=>{
+                        for (const dest in config.destinations) {
+                            const destInst = config.destinations[dest];
+                            console.log(`Uploading ${id} to ${dest}`);
+                            await destInst.upload({
+                                scraper,
+                                id,
+                                tags,
+                                data: buf,
+                                width: data.width,
+                                height: data.height,
+                                ext: data.ext
+                            });
+                        }
+    
+                        await dbW.putJSON({
                             tags,
-                            data: buf,
                             width: data.width,
-                            height: data.height,
-                            ext: data.ext
-                        });
-                    }
+                            height: data.height
+                        }, ...key);
+                    });
 
-                    await dbW.putJSON({
-                        tags,
-                        width: data.width,
-                        height: data.height
-                    }, ...key);
+                    await new Promise(rs => setTimeout(rs, 1000 * config.downloadSuccessWaitTime));
                 }).catch(e => {
                     console.error(`Failed to download ${id}`, e);
                     failedCount++;

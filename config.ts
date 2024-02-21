@@ -17,5 +17,8 @@ export const config: Config = {
             enableSpoiler: true,
         })
     },
-    scrapeInterval: 10 * 60 // 10 minutes
+    scrapeInterval: 10 * 60, // 10 minutes
+    uploadSuccessWaitTime: 1,
+    uploadFailWaitTime: 5,
+    downloadSuccessWaitTime: 1
 }

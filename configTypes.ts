@@ -10,4 +10,7 @@ export interface Config {
         [key: string]: Destination
     },
     scrapeInterval: number;
+    uploadSuccessWaitTime: number;
+    uploadFailWaitTime: number;
+    downloadSuccessWaitTime: number;
 }
