@@ -81,6 +81,6 @@ const db = levelup(leveldown('./database'))
             }
         }
 
-        await new Promise(rs => setTimeout(rs, 1000 * 10 * 60));
+        await new Promise(rs => setTimeout(rs, 1000 * config.scrapeInterval));
     }
 })()
