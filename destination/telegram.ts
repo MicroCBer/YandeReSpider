@@ -49,7 +49,7 @@ export class TelegramDestination {
     async upload(img: UploadImage) {
         const caption = this.generateCaption(img);
         if (this.asFile) {
-            await this.bot.telegram.sendDocument(this.channel, { source: Buffer.from(img.data) }, {
+            await this.bot.telegram.sendDocument(this.channel, { source: Buffer.from(img.data), filename: `${img.scraper}-${img.id}-${img.width}x${img.height}.${img.ext}` }, {
                 caption,
                 parse_mode: 'HTML',
                 disable_notification: this.disableNotification
